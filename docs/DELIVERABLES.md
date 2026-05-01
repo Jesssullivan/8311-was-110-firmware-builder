@@ -45,6 +45,9 @@ As of 2026-05-01:
   `e59802470464423b314e1310d3298bb0e2431473`.
 - PR #6 added offline verification for collected running-device bundles:
   `38990fa06602144ca1379f337ad2ee1d2ca7add4`.
+- PR #8 added offline verification for materialized public source
+  candidate workspaces before PRX126 reconstruction handoff:
+  `a1491ef394691ed41a7892f5f401bae858460171`.
 - The public community release workflow now defaults to GitHub-hosted
   Ubuntu, installs Nix with pinned `cachix/install-nix-action` commit
   `ab739621df7a23f52766f9ccc97f38da6b7af14f`, uses pinned
@@ -159,6 +162,8 @@ As of 2026-05-01:
     `f5bf2ec56fec9a745483f0a7e61ab6525e6ab4ed`
   - key evidence files:
     `dts/prx126-sfp-pon.dts`, `image/prx300.mk`, `image/packages.mk`
+  - handoff verifier:
+    `./pins/verify-source-stack-materialization.sh --dir vendor-blobs/source-stack-candidates --require prpl-feed-target-mips-ugw-8.5.2`
 
 ## Linear Issues
 
