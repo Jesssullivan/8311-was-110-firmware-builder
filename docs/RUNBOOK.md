@@ -258,11 +258,19 @@ is included in `manifest.json` and `SHA256SUMS`.
 
 For the pinned public community baseline, use
 `.github/workflows/public-community-release.yml` after changes are merged to
-`master`. It builds `.#publicCommunityRelease` directly from committed pins,
-verifies the release pack, keyless-signs `manifest.json`, `SHA256SUMS`, and
+`master`. This workflow uses GitHub-hosted Ubuntu by default, installs Nix
+with a pinned `cachix/install-nix-action` commit, builds
+`.#publicCommunityRelease` directly from committed public pins, verifies the
+release pack, keyless-signs `manifest.json`, `SHA256SUMS`, and
 `provenance.intoto.json` with GitHub OIDC/cosign bundles, and uploads the
 signed release directory as a workflow artifact. Supplying `release_tag`
 also creates a draft GitHub Release containing the signed pack.
+
+To run the same public workflow on a pre-provisioned lab runner, dispatch it
+with `runner_labels=["self-hosted","Linux"]` and `install_nix=false`.
+Do not use the public workflow for private vendor drops or live-unit bundle
+extracts; those belong in the controlled `release-build.yml` / Bazel private
+CAS path.
 
 For Bazel/RBE execution, use the `was110_firmware` rule and private vendor
 blob repository described in `docs/BAZEL-RBE.md`. Remote execution is
