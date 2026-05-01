@@ -1,0 +1,4 @@
+module(
+    name = "was110_firmware_builder",
+    version = "0.1.0",
+)

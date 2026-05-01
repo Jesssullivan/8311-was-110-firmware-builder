@@ -222,8 +222,15 @@ else
 	HEADER_CRC_OFFSET=$((0x6A))
 
 	echo "Updating CRCs"
-	{ cat "${FILES[@]}" | tools/bfw-crc.pl; cat /dev/zero; } | dd of="$OUT" seek="$CONTENT_CRC_OFFSET" bs=1 count=8 conv=notrunc 2>/dev/null
-	head -c "$LEN_HDR" "$OUT" | tools/bfw-crc.pl | dd of="$OUT" seek="$HEADER_CRC_OFFSET" bs=1 count=4 conv=notrunc 2>/dev/null
+	CONTENT_CRC=$(mktemp)
+	HEADER_CRC=$(mktemp)
+	trap 'rm -f "$CONTENT_CRC" "$HEADER_CRC"' EXIT
+	cat "${FILES[@]}" | tools/bfw-crc.pl > "$CONTENT_CRC"
+	head -c "$LEN_HDR" "$OUT" | tools/bfw-crc.pl > "$HEADER_CRC"
+	{ cat "$CONTENT_CRC"; cat /dev/zero; } | dd of="$OUT" seek="$CONTENT_CRC_OFFSET" bs=1 count=8 conv=notrunc 2>/dev/null
+	dd of="$OUT" seek="$HEADER_CRC_OFFSET" bs=1 count=4 conv=notrunc 2>/dev/null < "$HEADER_CRC"
+	rm -f "$CONTENT_CRC" "$HEADER_CRC"
+	trap - EXIT
 
 	touch -d "$DATE" "$OUT"
 	echo "Local upgrade image file '$OUT' created successfully."

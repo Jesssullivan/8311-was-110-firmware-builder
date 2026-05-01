@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "kind": "8311-was-110-fwenv-profile",
+  "description": "Example lab fwenv profile. Copy and adjust for each site before using as a release gate.",
+  "required": {
+    "8311_fix_vlans": "1",
+    "8311_console_en": "1",
+    "8311_persist_root": "0",
+    "8311_mib_file": "/etc/mibs/prx300_1V.ini"
+  },
+  "forbidden": []
+}

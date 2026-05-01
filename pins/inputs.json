@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "purpose": "Pinned cryptographic identities for every vendor-supplied input that flows into a release artifact. Update only via the documented vendor-update review process (see docs/RUNBOOK.md).",
+  "inputs": {
+    "bfw_image": {
+      "description": "Stock BFW local-upgrade image. Pass to build.sh -i.",
+      "filename_hint": "WAS-110_*_bfw_*.img",
+      "vendor_version": "community-bfw-v2.4.0+basic-v2.8.3",
+      "source_url": "public-source-lock:public-source-lock.json",
+      "sha256": "9e93115074604376f275d88551a3d926b2a1cd1ab3cf7c22f64d03b8031f2ca7",
+      "size_bytes": 20458752,
+      "fetched_on": "2026-05-01",
+      "notes": ""
+    },
+    "basic_image_dir": {
+      "description": "Directory containing bootcore.bin, kernel.bin, rootfs.img extracted from stock basic firmware. Pass to build.sh -I.",
+      "vendor_version": "community-bfw-v2.4.0+basic-v2.8.3",
+      "source_url": "public-source-lock:public-source-lock.json",
+      "fetched_on": "2026-05-01",
+      "files": {
+        "bootcore.bin": {
+          "sha256": "e99e25332bdcb3c9b0447abad1be9b1e54511b6bda99f2b51ae2499db5b905a4",
+          "size_bytes": 5426656
+        },
+        "kernel.bin": {
+          "sha256": "d66b24cf873cc1071a3aa2d155bf677f503f10d221513e469083f8a591f6b96c",
+          "size_bytes": 2274800
+        },
+        "rootfs.img": {
+          "sha256": "756da584829d8ef144bdd8e400fb763ff31711e2b84e430912118fb6093b7e33",
+          "size_bytes": 6197248
+        }
+      }
+    },
+    "kernel_blob": {
+      "description": "Vendor-built Linux kernel shipped with the WAS-110. Until a self-built replacement exists, treated as an opaque pinned blob.",
+      "expected_banner_substring": "Linux version 4.9.",
+      "expected_target": "prx126-sfp-qspi-nand",
+      "expected_compiler": "gcc version 8.3.0",
+      "expected_sdk": "OpenWrt GCC 8.3.0 v19.07.8_maxlinear",
+      "source_status": "vendor-only - GPL request open with BFW Solutions / MaxLinear / Calix (see docs/gpl-requests/)",
+      "cve_tracking_status": "Linux 4.9 LTS reached EOL 2023-01. Treated as exposed to all post-EOL upstream CVEs unless we receive sources and rebuild. See docs/KERNEL-AUDIT.md."
+    },
+    "uboot_blobs": {
+      "description": "U-Boot variants in whole_image/. Vendor-built; no source available locally.",
+      "expected_version_substring": "U-Boot 2016.07-MXL-v-3.1",
+      "files": {
+        "uboot-azores-1.0.24.bin": {
+          "sha256": "e757517fb8152c0e7b4db57f9cbef0576e2ff76dd45eea76596eddbaeb9e7b8d"
+        },
+        "uboot-azores.bin": {
+          "sha256": "829c27ddb6200b57d7987e8119bf6ab98503960602a931192879342def1d7210"
+        },
+        "uboot-8311.bin": {
+          "sha256": "9ed75b1100db84d0d8f03da386180054d000fce3cfd36eb99e5a939f2dc42888"
+        },
+        "uboot-potron.bin": {
+          "sha256": "677cf01642e9dcd251fa0638baaa3dfb80ba8788f7e0e70fdd79253ba861d7b2"
+        },
+        "uboot-potron-original.bin": {
+          "sha256": "d59af8815c6dd1580ed86c985c6411306e07761e24d7ea9224c39469aee00977"
+        }
+      }
+    }
+  },
+  "compensating_controls": {
+    "rootfs_reproducible": "build.sh sets SOURCE_DATE_EPOCH=GIT_EPOCH and -all-time/-mkfs-time on mksquashfs and mkimage.",
+    "binary_mod_pinning": "mods/binary-mods.sh requires expected sha256 hashes before/after every patch.",
+    "vendor_blob_pinning": "This file. Verified by pins/verify.sh on every build.",
+    "release_attestation": "Each release emits audit/manifest.json with hashes of every input + every output, signed via cosign in the release-build workflow."
+  }
+}

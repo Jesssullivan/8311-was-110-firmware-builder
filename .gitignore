@@ -3,5 +3,10 @@ rootfs
 rootfs-bfw/
 rootfs-basic/
 stock/
+/vendor-blobs/
 whole_image/system_sw.img
 i18n/lmo/*.lmo
+.direnv/
+result
+result-*
+/bazel-*

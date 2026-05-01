@@ -1,0 +1,23 @@
+load("//bazel:was110_firmware.bzl", "was110_firmware")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "fixtures/basic/bootcore.bin",
+    "fixtures/basic/kernel.bin",
+    "fixtures/basic/rootfs.img",
+    "fixtures/bfw.img",
+])
+
+was110_firmware(
+    name = "analysis_fixture",
+    basic_bootcore = "fixtures/basic/bootcore.bin",
+    basic_kernel = "fixtures/basic/kernel.bin",
+    basic_rootfs = "fixtures/basic/rootfs.img",
+    bfw_image = "fixtures/bfw.img",
+    release = False,
+    tags = [
+        "analysis-only",
+        "manual",
+    ],
+)

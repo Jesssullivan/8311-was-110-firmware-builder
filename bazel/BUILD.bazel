@@ -1,0 +1,12 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "build_action.sh",
+    "vendor_blobs.bzl",
+    "was110_firmware.bzl",
+])
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]),
+)

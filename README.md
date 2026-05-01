@@ -1,5 +1,32 @@
 # 8311 WAS-110 Firmware Builder
 
+## Lab / audit fork notes
+
+This fork adds tooling for lab-grade reproducibility, vendor-blob pinning,
+and post-flash device verification on top of the upstream builder. See:
+
+- `docs/ARCHITECTURE.md` - layered build/audit model
+- `docs/DELIVERABLES.md` - repo/Linear milestone tracker
+- `docs/RUNBOOK.md` - build -> flash -> verify procedure
+- `docs/KERNEL-AUDIT.md` - kernel inventory + CVE-tracking posture
+- `docs/KERNEL-UPGRADE-PATH.md` - MVP path to a patchable/attestable kernel
+- `docs/KERNEL-BUNDLE.md` - external kernel artifact contract
+- `docs/BAZEL-RBE.md` - Bazel remote-execution input model
+- `docs/VENDOR-BLOBS.md` - reviewed blob intake + private Bazel handoff
+- `docs/SOURCE-TRACE.md` - public source trace for materializing required blobs
+- `docs/PUBLIC-SOURCES.md` - public PRX126/PRX300 source map
+- `docs/gpl-requests/` - pending kernel-source requests (BFW, MaxLinear, Calix)
+- `pins/` - sha256-pinned vendor inputs, public source locks, source-stack candidates
+- `audit/` - manifest generation + on-device verification
+- `flake.nix` - `nix develop` for a pinned build environment
+- `BUILD.bazel` / `bazel/` - optional Bazel/RBE bridge
+
+The kernel-upgrade strategy is intentionally artifact-first. Exact
+WAS-110 `4.9.308+` source is still worth pursuing, but the operational
+milestone is a bootable PRX126 `kernel.bin` plus matching modules,
+firmware, and `kernel-build.json` that can be injected with
+`build.sh --kernel-bundle` and verified on a live module.
+
 ## Custom fwenvs
 ```
 8311_fix_vlans=1
