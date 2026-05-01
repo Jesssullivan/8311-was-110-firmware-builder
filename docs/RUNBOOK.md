@@ -217,6 +217,23 @@ Pass `--include-inactive` to capture both A/B slots. Pass
 work; raw MTD dumps can include bootloader/env/calibration material and
 device-specific secrets.
 
+Verify the collected bundle before it enters audit storage:
+
+```sh
+./audit/verify-running-bundle.sh \
+  --strict \
+  --reject-sensitive \
+  --expected-manifest out/manifest.json \
+  out/device-bundles/<unit>-<timestamp>.tar.gz
+```
+
+That offline check validates the bundle's `SHA256SUMS`, the collector
+manifest, required runtime metadata, active `kernel*` / `bootcore*` /
+`rootfs*` volume dumps, active kernel copy, and `/proc/version` banner
+against the release manifest. `--reject-sensitive` fails if a bundle
+contains `sensitive/` or `mtd/` files, which is the right default for
+normal audit storage.
+
 This evidence is useful for comparing lab units, extracting the exact DTB
 shape, identifying shipped PON modules/firmware/userland, and writing
 complete GPL requests. It is not source and should not be described as a

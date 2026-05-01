@@ -7,6 +7,14 @@ trap 'rm -rf "$TMP"' EXIT
 
 sha256() { sha256sum "$1" | awk '{print $1}'; }
 sz() { stat -c '%s' "$1" 2>/dev/null || stat -f '%z' "$1"; }
+write_sums() {
+  (
+    cd "$1"
+    find . -type f ! -name SHA256SUMS -print | LC_ALL=C sort | while IFS= read -r f; do
+      sha256sum "$f"
+    done > SHA256SUMS
+  )
+}
 
 BFW="$TMP/bfw.img"
 BASIC="$TMP/basic"
@@ -309,6 +317,105 @@ fi
 if FAKE_SSH_BAD_BANNER=1 PATH="$FAKE_SSH_DIR:$PATH" "$BASE_DIR/audit/verify-device.sh" \
   fixture-host root "$DEVICE_MANIFEST" >/dev/null 2>&1; then
   echo "verify-device banner mismatch unexpectedly passed" >&2
+  exit 1
+fi
+
+RUNNING_BUNDLE="$TMP/running-bundle"
+mkdir -p \
+  "$RUNNING_BUNDLE/metadata" \
+  "$RUNNING_BUNDLE/observed-kernel-bundle" \
+  "$RUNNING_BUNDLE/sensitive" \
+  "$RUNNING_BUNDLE/mtd" \
+  "$RUNNING_BUNDLE/trees" \
+  "$RUNNING_BUNDLE/volumes"
+printf 'Linux version 4.9.308+ (fixture)\n' > "$RUNNING_BUNDLE/metadata/proc-version"
+printf 'fixture 4.9.308+\n' > "$RUNNING_BUNDLE/metadata/uname"
+printf 'rootfsname=rootfsA\n' > "$RUNNING_BUNDLE/metadata/cmdline"
+printf 'mtd0: 00100000 00020000 "u-boot"\n' > "$RUNNING_BUNDLE/metadata/proc-mtd"
+printf 'Volume ID: 0\n' > "$RUNNING_BUNDLE/metadata/ubinfo"
+printf '8311_fix_vlans=1\n' > "$RUNNING_BUNDLE/metadata/fwenv-filtered"
+printf 'active kernel\n' > "$RUNNING_BUNDLE/volumes/kernelA.bin"
+printf 'active bootcore\n' > "$RUNNING_BUNDLE/volumes/bootcoreA.bin"
+printf 'active rootfs\n' > "$RUNNING_BUNDLE/volumes/rootfsA.bin"
+cp "$RUNNING_BUNDLE/volumes/kernelA.bin" "$RUNNING_BUNDLE/observed-kernel-bundle/kernel.bin"
+mkdir -p "$TMP/empty-tree" "$TMP/modules-tree"
+tar -czf "$RUNNING_BUNDLE/trees/proc-device-tree.tar.gz" -C "$TMP/empty-tree" .
+tar -czf "$RUNNING_BUNDLE/trees/modules-4.9.308+.tar.gz" -C "$TMP/modules-tree" .
+cat > "$RUNNING_BUNDLE/manifest.json" <<'JSON'
+{
+  "schema_version": 1,
+  "kind": "8311-was-110-running-device-bundle",
+  "collected_at": "20260501T000000Z",
+  "target": {"host": "fixture-host", "user": "root"},
+  "active_bank": "A",
+  "kernel_release": "4.9.308+",
+  "expected_manifest": "",
+  "options": {
+    "include_inactive": false,
+    "include_sensitive": false,
+    "include_mtd": false,
+    "volume_dump": true
+  }
+}
+JSON
+RUNNING_EXPECTED="$TMP/running-expected-manifest.json"
+cat > "$RUNNING_EXPECTED" <<JSON
+{
+  "schema_version": 1,
+  "kind": "8311-was-110-firmware-build-manifest",
+  "kernel": {"banner": "Linux version 4.9.308+ (fixture)"},
+  "artifacts": {
+    "kernel.bin": {
+      "sha256": "$(sha256 "$RUNNING_BUNDLE/volumes/kernelA.bin")",
+      "size_bytes": $(sz "$RUNNING_BUNDLE/volumes/kernelA.bin")
+    },
+    "bootcore.bin": {
+      "sha256": "$(sha256 "$RUNNING_BUNDLE/volumes/bootcoreA.bin")",
+      "size_bytes": $(sz "$RUNNING_BUNDLE/volumes/bootcoreA.bin")
+    },
+    "rootfs.img": {
+      "sha256": "$(sha256 "$RUNNING_BUNDLE/volumes/rootfsA.bin")",
+      "size_bytes": $(sz "$RUNNING_BUNDLE/volumes/rootfsA.bin")
+    }
+  }
+}
+JSON
+write_sums "$RUNNING_BUNDLE"
+"$BASE_DIR/audit/verify-running-bundle.sh" \
+  --strict \
+  --reject-sensitive \
+  --expected-manifest "$RUNNING_EXPECTED" \
+  "$RUNNING_BUNDLE" >/dev/null
+tar -czf "$TMP/running-bundle.tar.gz" -C "$TMP" running-bundle
+"$BASE_DIR/audit/verify-running-bundle.sh" \
+  --strict \
+  --reject-sensitive \
+  --expected-manifest "$RUNNING_EXPECTED" \
+  "$TMP/running-bundle.tar.gz" >/dev/null
+
+RUNNING_TAMPERED="$TMP/running-bundle-tampered"
+cp -a "$RUNNING_BUNDLE" "$RUNNING_TAMPERED"
+printf 'tamper\n' >> "$RUNNING_TAMPERED/metadata/proc-version"
+if "$BASE_DIR/audit/verify-running-bundle.sh" "$RUNNING_TAMPERED" >/dev/null 2>&1; then
+  echo "tampered running bundle unexpectedly passed" >&2
+  exit 1
+fi
+
+RUNNING_UNKNOWN_BANK="$TMP/running-bundle-unknown-bank"
+cp -a "$RUNNING_BUNDLE" "$RUNNING_UNKNOWN_BANK"
+jq '.active_bank = ""' "$RUNNING_BUNDLE/manifest.json" > "$RUNNING_UNKNOWN_BANK/manifest.json"
+write_sums "$RUNNING_UNKNOWN_BANK"
+if "$BASE_DIR/audit/verify-running-bundle.sh" --strict "$RUNNING_UNKNOWN_BANK" >/dev/null 2>&1; then
+  echo "running bundle with unknown active bank unexpectedly passed strict mode" >&2
+  exit 1
+fi
+
+RUNNING_SENSITIVE="$TMP/running-bundle-sensitive"
+cp -a "$RUNNING_BUNDLE" "$RUNNING_SENSITIVE"
+printf 'secret-ish fixture\n' > "$RUNNING_SENSITIVE/sensitive/fwenv-full.txt"
+write_sums "$RUNNING_SENSITIVE"
+if "$BASE_DIR/audit/verify-running-bundle.sh" --reject-sensitive "$RUNNING_SENSITIVE" >/dev/null 2>&1; then
+  echo "running bundle with sensitive files unexpectedly passed reject-sensitive mode" >&2
   exit 1
 fi
 
