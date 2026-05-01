@@ -1,0 +1,55 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "was110_builder_srcs",
+    srcs = glob(
+        [
+            "audit/**",
+            "containers/**",
+            "docs/**",
+            "files/**",
+            "i18n/**",
+            "mods/**",
+            "packages/**",
+            "pins/**",
+            "tools/**",
+            "whole_image/**",
+            "8311-xgspon-bypass/**",
+            ".gitmodules",
+            "BUILD.bazel",
+            "MODULE.bazel",
+            "build.sh",
+            "copy_packages.sh",
+            "create.sh",
+            "extract.sh",
+            "flake.lock",
+            "flake.nix",
+            "system_sw.ini",
+            "wholeImage.sh",
+        ],
+        allow_empty = True,
+        exclude = [
+            "out/**",
+            "rootfs",
+            "rootfs-bfw/**",
+            "rootfs-basic/**",
+            "whole_image/system_sw.img",
+        ],
+    ) + [
+        "//bazel:srcs",
+        "//bazel/platforms:srcs",
+    ],
+)
+
+# Example use from a lab-private workspace:
+#
+# was110_firmware(
+#     name = "lab_release",
+#     bfw_image = "@was110_vendor_blobs//:bfw.img",
+#     basic_bootcore = "@was110_vendor_blobs//:basic_bootcore",
+#     basic_kernel = "@was110_vendor_blobs//:basic_kernel",
+#     basic_rootfs = "@was110_vendor_blobs//:basic_rootfs",
+#     kernel_bundle_tar = "@linux_x//was110:kernel_bundle.tar",
+#     pins_manifest = "@was110_vendor_blobs//:pins_inputs",
+#     tags = ["requires-private-rbe"],
+# )

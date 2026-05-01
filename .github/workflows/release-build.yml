@@ -1,0 +1,156 @@
+name: Release build
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_labels:
+        description: 'JSON array of runner labels. Use a Nix-enabled Linux runner with vendor blobs mounted.'
+        required: true
+        default: '["self-hosted","Linux"]'
+      bfw_image:
+        description: 'Absolute path to pinned stock BFW local-upgrade image on the runner.'
+        required: true
+      basic_image_dir:
+        description: 'Absolute path to pinned basic image dir containing bootcore.bin, kernel.bin, rootfs.img.'
+        required: true
+      kernel_bundle_dir:
+        description: 'Optional absolute path to external kernel bundle containing kernel.bin and lib/modules.'
+        required: false
+        default: ''
+      kernel_file:
+        description: 'Optional absolute path to external kernel.bin on the runner.'
+        required: false
+        default: ''
+      kernel_root:
+        description: 'Optional absolute path to external kernel root containing lib/modules and optional lib/firmware.'
+        required: false
+        default: ''
+      kernel_modules_dir:
+        description: 'Optional absolute path to external lib/modules replacement.'
+        required: false
+        default: ''
+      kernel_firmware_dir:
+        description: 'Optional absolute path to external lib/firmware replacement.'
+        required: false
+        default: ''
+      cve_baseline:
+        description: 'Optional absolute path to reviewed CVE baseline CSV to include in the signed audit pack.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    name: Build and sign artifacts
+    runs-on: ${{ fromJSON(inputs.runner_labels) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Check Nix
+        run: nix --version
+
+      - name: Evaluate flake
+        run: nix flake check --no-write-lock-file
+
+      - name: Validate pins
+        env:
+          BFW_IMAGE: ${{ inputs.bfw_image }}
+          BASIC_IMAGE_DIR: ${{ inputs.basic_image_dir }}
+        run: |
+          nix develop .#linux-build -c ./pins/verify.sh --strict \
+            "$BFW_IMAGE" \
+            "$BASIC_IMAGE_DIR"
+
+      - name: Build firmware artifacts
+        env:
+          BFW_IMAGE: ${{ inputs.bfw_image }}
+          BASIC_IMAGE_DIR: ${{ inputs.basic_image_dir }}
+          KERNEL_BUNDLE_DIR: ${{ inputs.kernel_bundle_dir }}
+          KERNEL_FILE: ${{ inputs.kernel_file }}
+          KERNEL_ROOT: ${{ inputs.kernel_root }}
+          KERNEL_MODULES_DIR: ${{ inputs.kernel_modules_dir }}
+          KERNEL_FIRMWARE_DIR: ${{ inputs.kernel_firmware_dir }}
+        run: |
+          BUILD_ARGS=()
+          if [ -n "$KERNEL_BUNDLE_DIR" ]; then
+            if [ -n "$KERNEL_FILE" ] || [ -n "$KERNEL_ROOT" ] || [ -n "$KERNEL_MODULES_DIR" ] || [ -n "$KERNEL_FIRMWARE_DIR" ]; then
+              echo "kernel_bundle_dir cannot be combined with granular kernel inputs" >&2
+              exit 2
+            fi
+            nix develop .#linux-build -c ./audit/verify-kernel-bundle.sh "$KERNEL_BUNDLE_DIR"
+            BUILD_ARGS+=(--kernel-bundle "$KERNEL_BUNDLE_DIR")
+          elif [ -n "$KERNEL_FILE" ]; then
+            echo "release builds with an external kernel require kernel_bundle_dir and kernel-build.json" >&2
+            exit 2
+            BUILD_ARGS+=(--kernel-file "$KERNEL_FILE")
+            if [ -n "$KERNEL_ROOT" ]; then
+              BUILD_ARGS+=(--kernel-root "$KERNEL_ROOT")
+            fi
+            if [ -n "$KERNEL_MODULES_DIR" ]; then
+              BUILD_ARGS+=(--kernel-modules-dir "$KERNEL_MODULES_DIR")
+            fi
+            if [ -n "$KERNEL_FIRMWARE_DIR" ]; then
+              BUILD_ARGS+=(--kernel-firmware-dir "$KERNEL_FIRMWARE_DIR")
+            fi
+          elif [ -n "$KERNEL_ROOT" ] || [ -n "$KERNEL_MODULES_DIR" ] || [ -n "$KERNEL_FIRMWARE_DIR" ]; then
+            echo "granular kernel root/modules/firmware inputs require kernel_file" >&2
+            exit 2
+          fi
+          nix develop .#linux-build -c ./build.sh \
+            -i "$BFW_IMAGE" \
+            -I "$BASIC_IMAGE_DIR" \
+            --work-dir "$RUNNER_TEMP/was110-work" \
+            --out-dir "$GITHUB_WORKSPACE/out" \
+            -R \
+            "${BUILD_ARGS[@]}"
+
+      - name: Attach CVE baseline
+        env:
+          CVE_BASELINE: ${{ inputs.cve_baseline }}
+        run: |
+          if [ -n "$CVE_BASELINE" ]; then
+            cp "$CVE_BASELINE" out/cve-baseline.csv
+          fi
+
+      - name: Assemble audit pack
+        run: nix develop .#linux-build -c ./audit/release-pack.sh out
+
+      - name: Verify audit pack
+        run: nix develop .#linux-build -c ./audit/verify-release-pack.sh out
+
+      - name: Enforce release policy
+        run: |
+          if [ -f out/cve-baseline.csv ]; then
+            nix develop .#linux-build -c ./audit/verify-release-policy.sh \
+              --cve-baseline out/cve-baseline.csv \
+              out
+          else
+            nix develop .#linux-build -c ./audit/verify-release-policy.sh out
+          fi
+
+      - name: Sign manifest and checksums
+        run: |
+          nix develop .#linux-build -c cosign sign-blob --yes \
+            --bundle out/manifest.json.bundle \
+            out/manifest.json
+          nix develop .#linux-build -c cosign sign-blob --yes \
+            --bundle out/SHA256SUMS.bundle \
+            out/SHA256SUMS
+          nix develop .#linux-build -c cosign sign-blob --yes \
+            --bundle out/provenance.intoto.json.bundle \
+            out/provenance.intoto.json
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: was110-release-${{ github.sha }}
+          path: |
+            out/*

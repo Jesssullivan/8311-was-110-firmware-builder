@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  syntax:
+    name: Syntax and manifest checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq binutils u-boot-tools p7zip-full git
+
+      - name: Validate JSON pins
+        run: jq -e . pins/*.json >/dev/null
+
+      - name: Validate shell syntax
+        run: |
+          bash -n build.sh create.sh wholeImage.sh bazel/*.sh mods/*.sh audit/*.sh pins/*.sh tests/*.sh
+          sh -n extract.sh
+
+      - name: Run vendor-free audit tests
+        run: |
+          tests/test-audit-tools.sh
+          tests/test-bazel-bridge.sh
+          tests/test-public-input-mirror.sh
+          tests/test-source-stack-candidates.sh
+
+      - name: Validate Bazel files when available
+        run: |
+          if command -v buildifier >/dev/null; then
+            buildifier -mode=check BUILD.bazel MODULE.bazel bazel/BUILD.bazel bazel/*.bzl bazel/platforms/BUILD.bazel tests/bazel/BUILD.bazel
+          else
+            echo "buildifier not installed; skipped"
+          fi
+          if command -v bazelisk >/dev/null; then
+            bazelisk query //:was110_builder_srcs
+            bazelisk query //bazel/platforms:was110_rbe_linux
+            bazelisk build --nobuild //tests/bazel:analysis_fixture
+          else
+            echo "bazelisk not installed; skipped"
+          fi
