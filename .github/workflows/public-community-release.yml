@@ -28,7 +28,8 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # Pinned actions/checkout v6.0.2.
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
 
@@ -86,7 +87,8 @@ jobs:
             > "was110-public-community-release-${GITHUB_SHA}.tar.gz.sha256"
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        # Pinned actions/upload-artifact v7.0.1.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: was110-public-community-release-${{ github.sha }}
           path: |
