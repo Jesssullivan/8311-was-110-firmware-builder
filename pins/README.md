@@ -75,6 +75,15 @@ The fetcher writes `source-stack.manifest.json` next to the checkouts. Add
 `--pack-archives` when source tarballs are needed for handoff/RBE; omit
 `--only` only for a full source-candidate materialization.
 
+Verify a materialized workspace before handing it to kernel build
+infrastructure:
+
+```sh
+./pins/verify-source-stack-materialization.sh \
+  --dir vendor-blobs/source-stack-candidates \
+  --require prpl-feed-target-mips-ugw-8.5.2
+```
+
 CI can verify that committed pins still match the public source lock
 without downloading blobs:
 

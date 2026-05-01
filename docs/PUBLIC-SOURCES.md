@@ -34,6 +34,18 @@ commits. The fetcher creates local checkouts under
 tarballs are needed for handoff/RBE; OpenWrt and UGW trees are large.
 Omit `--only` when you intentionally want every locked Git candidate.
 
+Before using a materialized workspace as input to `linux-x`, Nix, Bazel, or
+manual diffing, verify the local checkouts against that manifest:
+
+```sh
+./pins/verify-source-stack-materialization.sh \
+  --dir vendor-blobs/source-stack-candidates \
+  --require prpl-feed-target-mips-ugw-8.5.2
+```
+
+That offline check confirms the checkout commit, tree hash, dirty state,
+evidence paths, and any packed source archive hash/size.
+
 The first local materialization captured for this repo is:
 
 ```text
