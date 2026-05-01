@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "kind": "8311-was-110-source-stack-candidates",
+  "reviewed_on": "2026-05-01",
+  "verdict": {
+    "exact_was110_kernel_source": "not_found_publicly",
+    "exact_was110_openwrt_sdk": "not_found_publicly",
+    "usable_public_scaffolding": true,
+    "notes": "These are source candidates for PRX126/PRX300 rebuild work. They are not complete corresponding source for the kernel.bin currently shipped by the public community WAS-110 firmware baseline."
+  },
+  "shipping_kernel_identity": {
+    "banner": "Linux version 4.9.308+ (flaming.he@ptrd01) (gcc version 8.3.0 (OpenWrt GCC 8.3.0 v19.07.8_maxlinear) ) #0 SMP Wed Jul 10 08:08:11 UTC 2024",
+    "target_hint": "prx126-sfp-qspi-nand",
+    "source_status": "opaque vendor blob; GPL requests pending"
+  },
+  "upstream_openwrt": {
+    "v19.07.8": {
+      "repo": "https://github.com/openwrt/openwrt.git",
+      "tag": "v19.07.8",
+      "tag_object": "9ca5a5ae94e561c5dad796729f70e32f937ef5e3",
+      "commit": "31f2f76cd5d7745e28fae3797d79b746360461f5",
+      "role": "Upstream OpenWrt baseline matching the compiler version family named in the WAS-110 banner.",
+      "gap": "Upstream OpenWrt 19.07 does not contain a PRX300/PRX126 target."
+    }
+  },
+  "prpl_foundation_intel": {
+    "group_url": "https://gitlab.com/prpl-foundation/intel",
+    "manifest": {
+      "repo": "https://gitlab.com/prpl-foundation/intel/manifest.git",
+      "ugw_8.4.2": {
+        "commit": "e421a128ddb68ec2f3b9f51a115db3f591646c82",
+        "role": "Public UGW 8.4.2 repo manifest; closest older public stack manifest."
+      },
+      "ugw-8.5.2": {
+        "commit": "2388399a5973f56fb34635c1d7f4cc92d25f5e3f",
+        "role": "Public UGW 8.5.2 repo manifest; contains PRX126 SFP PON target scaffolding through feed_target_mips."
+      }
+    },
+    "linux": {
+      "repo": "https://gitlab.com/prpl-foundation/intel/linux.git",
+      "ugw_8.4.2": "12f30051b1f03b6f368d374afce7cf9510b6b3aa",
+      "ugw-8.5.2": "768fa383c6fdfc57017f5b0fc128c80a8be435e5",
+      "intel-4.9.276": "dc542d0ac6100123552c3a6ea12296061850e20b",
+      "role": "Public Linux 4.9 PRX300/UGW kernel source family.",
+      "gap": "Not the exact WAS-110 4.9.308+ kernel tree."
+    },
+    "feed_target_mips": {
+      "repo": "https://gitlab.com/prpl-foundation/intel/feed_target_mips.git",
+      "ugw_8.4.2": "8bdf610dbccdf5013980b293f435d4fcef1f649c",
+      "ugw-8.5.2": "d5b97df3b6a049bd91abc6e4531170409d434c4e",
+      "evidence": [
+        "dts/prx126-sfp-pon.dts",
+        "image/prx300.mk target PRX126_SFP_PON",
+        "image/packages.mk PON_* package sets"
+      ],
+      "role": "Public PRX126/PRX300 OpenWrt target/feed scaffolding."
+    }
+  },
+  "avm_osp_adjacent": {
+    "role": "OEM GPL drops for PRX300/Falcon-family fiber devices. Useful for diffing and driver archaeology, not exact WAS-110 source.",
+    "5590_fiber_prxi_08_20": {
+      "url": "https://osp.avm.de/fritzbox/fritzbox-5590-fiber/source-files-FRITZ.Box_5590_Fiber-prxI-08.20.tar.gz",
+      "size_bytes": 626761969,
+      "listed_on": "2026-02-16"
+    },
+    "5530_fiber_prxi_08_20": {
+      "url": "https://osp.avm.de/fritzbox/fritzbox-5530-fiber/source-files-FRITZ.Box_5530_Fiber-prxI-08.20.tar.gz",
+      "size_bytes": 626898054,
+      "listed_on": "2025-09-09"
+    }
+  },
+  "materialization": {
+    "notes": "Flat, script-consumable lock for public source candidates. These entries are useful for reconstruction work; they are not corresponding source for the shipping WAS-110 kernel blob.",
+    "git_sources": [
+      {
+        "name": "openwrt-v19.07.8",
+        "repo": "https://github.com/openwrt/openwrt.git",
+        "ref": "refs/tags/v19.07.8",
+        "ref_kind": "annotated_tag",
+        "commit": "31f2f76cd5d7745e28fae3797d79b746360461f5",
+        "tag_object": "9ca5a5ae94e561c5dad796729f70e32f937ef5e3",
+        "role": "Upstream OpenWrt 19.07.8 baseline for toolchain/package comparison.",
+        "evidence_paths": [
+          "target/linux/lantiq/Makefile",
+          "toolchain/gcc/common.mk"
+        ]
+      },
+      {
+        "name": "prpl-manifest-ugw_8.4.2",
+        "repo": "https://gitlab.com/prpl-foundation/intel/manifest.git",
+        "ref": "refs/heads/ugw_8.4.2",
+        "ref_kind": "branch",
+        "commit": "e421a128ddb68ec2f3b9f51a115db3f591646c82",
+        "role": "Older public UGW manifest for Intel/MaxLinear MIPS stack.",
+        "evidence_paths": []
+      },
+      {
+        "name": "prpl-manifest-ugw-8.5.2",
+        "repo": "https://gitlab.com/prpl-foundation/intel/manifest.git",
+        "ref": "refs/heads/ugw-8.5.2",
+        "ref_kind": "branch",
+        "commit": "2388399a5973f56fb34635c1d7f4cc92d25f5e3f",
+        "role": "Newer public UGW manifest; best public PRX126 stack scaffold.",
+        "evidence_paths": []
+      },
+      {
+        "name": "prpl-linux-ugw_8.4.2",
+        "repo": "https://gitlab.com/prpl-foundation/intel/linux.git",
+        "ref": "refs/heads/ugw_8.4.2",
+        "ref_kind": "branch",
+        "commit": "12f30051b1f03b6f368d374afce7cf9510b6b3aa",
+        "role": "Public UGW 8.4.2 Linux patch stack with PRX300 references.",
+        "evidence_paths": [
+          "linux_patches/0677-DRVLIB-SW-2520-Fix-PRX300-GPIO-driver-compiler-warni.patch"
+        ]
+      },
+      {
+        "name": "prpl-linux-ugw-8.5.2",
+        "repo": "https://gitlab.com/prpl-foundation/intel/linux.git",
+        "ref": "refs/heads/ugw-8.5.2",
+        "ref_kind": "branch",
+        "commit": "768fa383c6fdfc57017f5b0fc128c80a8be435e5",
+        "role": "Public UGW 8.5.2 Linux source tree for PRX300-family comparison.",
+        "evidence_paths": []
+      },
+      {
+        "name": "prpl-linux-intel-4.9.276",
+        "repo": "https://gitlab.com/prpl-foundation/intel/linux.git",
+        "ref": "refs/heads/intel-4.9.276",
+        "ref_kind": "branch",
+        "commit": "dc542d0ac6100123552c3a6ea12296061850e20b",
+        "role": "Public Linux 4.9.276 PRX300/Falcon-family baseline.",
+        "evidence_paths": []
+      },
+      {
+        "name": "prpl-feed-target-mips-ugw_8.4.2",
+        "repo": "https://gitlab.com/prpl-foundation/intel/feed_target_mips.git",
+        "ref": "refs/heads/ugw_8.4.2",
+        "ref_kind": "branch",
+        "commit": "8bdf610dbccdf5013980b293f435d4fcef1f649c",
+        "role": "Older public MIPS target feed for PRX300-family comparison.",
+        "evidence_paths": []
+      },
+      {
+        "name": "prpl-feed-target-mips-ugw-8.5.2",
+        "repo": "https://gitlab.com/prpl-foundation/intel/feed_target_mips.git",
+        "ref": "refs/heads/ugw-8.5.2",
+        "ref_kind": "branch",
+        "commit": "d5b97df3b6a049bd91abc6e4531170409d434c4e",
+        "role": "Public PRX126/PRX300 OpenWrt target/feed scaffold.",
+        "evidence_paths": [
+          "dts/prx126-sfp-pon.dts",
+          "image/prx300.mk",
+          "image/packages.mk"
+        ]
+      }
+    ],
+    "large_adjacent_archives": [
+      {
+        "name": "avm-5590-fiber-prxi-08.20",
+        "url": "https://osp.avm.de/fritzbox/fritzbox-5590-fiber/source-files-FRITZ.Box_5590_Fiber-prxI-08.20.tar.gz",
+        "size_bytes": 626761969,
+        "default_fetch": false,
+        "role": "Adjacent PRX300/Falcon-family OEM GPL drop; large, so opt-in."
+      },
+      {
+        "name": "avm-5530-fiber-prxi-08.20",
+        "url": "https://osp.avm.de/fritzbox/fritzbox-5530-fiber/source-files-FRITZ.Box_5530_Fiber-prxI-08.20.tar.gz",
+        "size_bytes": 626898054,
+        "default_fetch": false,
+        "role": "Adjacent PRX300/Falcon-family OEM GPL drop; large, so opt-in."
+      }
+    ]
+  },
+  "missing_for_rebuild": [
+    "WAS-110 device-specific kernel config for 4.9.308+",
+    "WAS-110 PRX126 DTS or final DTB source matching kernel.bin",
+    "MaxLinear OpenWrt v19.07.8_maxlinear target/feed revisions",
+    "PON driver/source/firmware package source matching the shipped image",
+    "U-Boot 2016.07-MXL-v-3.1.261 source and board config"
+  ]
+}

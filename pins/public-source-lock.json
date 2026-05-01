@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "kind": "8311-was-110-public-community-source-lock",
+  "policy": "Community-baseline seed inputs. These are public 8311 release artifacts, not original vendor stock firmware. Use when the lab explicitly accepts the public community release chain as the seed provenance for rebuilding this fork.",
+  "resolved_on": "2026-05-01",
+  "version_label": "community-bfw-v2.4.0+basic-v2.8.3",
+  "sources": {
+    "bfw_image": {
+      "description": "BFW-format local-upgrade image used for BFW header and /ptrom source data.",
+      "repo": "djGrrr/8311-was-110-firmware-builder",
+      "release_tag": "v2.4.0",
+      "release_url": "https://github.com/djGrrr/8311-was-110-firmware-builder/releases/tag/v2.4.0",
+      "asset_name": "WAS-110_8311_firmware_mod_2.4.0_bfw.7z",
+      "asset_url": "https://github.com/djGrrr/8311-was-110-firmware-builder/releases/download/v2.4.0/WAS-110_8311_firmware_mod_2.4.0_bfw.7z",
+      "asset_sha256": "b0b03bc28c540239beffb3a9e64f653c4a403d2e7e97a291b2ed785a05079031",
+      "asset_size_bytes": 16637511,
+      "extract": {
+        "archive_path": "local-upgrade.img",
+        "output_path": "bfw/local-upgrade.img",
+        "sha256": "9e93115074604376f275d88551a3d926b2a1cd1ab3cf7c22f64d03b8031f2ca7",
+        "size_bytes": 20458752
+      },
+      "notes": "v2.4.0 is the latest public 8311 release found with a BFW archive asset during the 2026-05-01 source-lock review. Its rootfs contains /ptrom, which the builder expects from the BFW input path."
+    },
+    "basic_image_dir": {
+      "description": "Basic image directory used for bootcore.bin, kernel.bin, and rootfs.img.",
+      "repo": "djGrrr/8311-was-110-firmware-builder",
+      "release_tag": "v2.8.3",
+      "release_url": "https://github.com/djGrrr/8311-was-110-firmware-builder/releases/tag/v2.8.3",
+      "asset_name": "WAS-110_8311_firmware_mod_v2.8.3_basic.7z",
+      "asset_url": "https://github.com/djGrrr/8311-was-110-firmware-builder/releases/download/v2.8.3/WAS-110_8311_firmware_mod_v2.8.3_basic.7z",
+      "asset_sha256": "5d72e7552e396127b59a548c6163113d088d545708aecb0fed38097b862288f8",
+      "asset_size_bytes": 10435192,
+      "extract": {
+        "output_dir": "basic",
+        "files": {
+          "bootcore.bin": {
+            "sha256": "e99e25332bdcb3c9b0447abad1be9b1e54511b6bda99f2b51ae2499db5b905a4",
+            "size_bytes": 5426656
+          },
+          "kernel.bin": {
+            "sha256": "d66b24cf873cc1071a3aa2d155bf677f503f10d221513e469083f8a591f6b96c",
+            "size_bytes": 2274800
+          },
+          "rootfs.img": {
+            "sha256": "756da584829d8ef144bdd8e400fb763ff31711e2b84e430912118fb6093b7e33",
+            "size_bytes": 6197248
+          }
+        }
+      },
+      "notes": "GitHub release API reported this asset digest as sha256:5d72e7552e396127b59a548c6163113d088d545708aecb0fed38097b862288f8 on 2026-05-01."
+    }
+  },
+  "source_dependencies": {
+    "8311-xgspon-bypass": {
+      "description": "Runtime bypass scripts and files injected into the rootfs by mods/common-mods.sh.",
+      "repo": "djGrrr/8311-xgspon-bypass",
+      "url": "https://github.com/djGrrr/8311-xgspon-bypass.git",
+      "source_path": "8311-xgspon-bypass",
+      "rev": "69f3c0e4b88505b168c89796386d12bfd705a30d",
+      "fetchgit_hash": "sha256-cjMWgOoQH7IzYe6laDlNf0nIBlTB46nlKIQMA2GuXwo=",
+      "notes": "Matches the repository gitlink at 8311-xgspon-bypass during the 2026-05-01 source-lock review. The Nix publicCommunityRelease build fetches this exact commit and injects it before running build.sh."
+    }
+  },
+  "references": [
+    {
+      "title": "GitHub latest 8311 release",
+      "url": "https://github.com/djGrrr/8311-was-110-firmware-builder/releases/latest"
+    },
+    {
+      "title": "PON wiki install guide",
+      "url": "https://pon.wiki/guides/install-the-8311-community-firmware-on-the-was-110/"
+    },
+    {
+      "title": "PON wiki multicast recovery and blob format",
+      "url": "https://pon.wiki/guides/was-110-multicast-upgrade-and-community-firmware-recovery/"
+    }
+  ]
+}
