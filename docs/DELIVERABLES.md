@@ -43,6 +43,8 @@ As of 2026-05-01:
   `0fb51b21b41a69e98c553df39e77a091a564dde2`.
 - PR #4 pinned the official GitHub workflow actions by commit SHA:
   `e59802470464423b314e1310d3298bb0e2431473`.
+- PR #6 added offline verification for collected running-device bundles:
+  `38990fa06602144ca1379f337ad2ee1d2ca7add4`.
 - The public community release workflow now defaults to GitHub-hosted
   Ubuntu, installs Nix with pinned `cachix/install-nix-action` commit
   `ab739621df7a23f52766f9ccc97f38da6b7af14f`, uses pinned
@@ -98,6 +100,17 @@ As of 2026-05-01:
     `audit/verify-release-pack.sh`, `audit/verify-release-policy.sh`, and
     `cosign verify-blob` for `manifest.json`, `SHA256SUMS`, and
     `provenance.intoto.json` all passed after downloading the artifact.
+- `TIN-881` is in progress. The repo now has an offline audit gate for
+  running-device bundles collected from live lab modules:
+  - verifier:
+    `audit/verify-running-bundle.sh`
+  - operator command:
+    `./audit/verify-running-bundle.sh --strict --reject-sensitive --expected-manifest out/manifest.json out/device-bundles/<unit>-<timestamp>.tar.gz`
+  - policy:
+    normal audit storage rejects `sensitive/` and `mtd/` content unless
+    the evidence pack is explicitly routed to restricted storage.
+  - remaining work:
+    collect and verify bundles from both lab WAS-110 units.
 - Earlier path-flake output captured during pre-merge validation:
   `/nix/store/f96qxrcb1qrkfxzhxa6kjyqjcfk95yl9-was110-public-community-release-community-bfw-v2.4.0+basic-v2.8.3`.
 - That path-flake build recorded source identity as `path-q8gnr4b5jkhc`
