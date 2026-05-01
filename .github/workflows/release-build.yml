@@ -90,16 +90,6 @@ jobs:
           elif [ -n "$KERNEL_FILE" ]; then
             echo "release builds with an external kernel require kernel_bundle_dir and kernel-build.json" >&2
             exit 2
-            BUILD_ARGS+=(--kernel-file "$KERNEL_FILE")
-            if [ -n "$KERNEL_ROOT" ]; then
-              BUILD_ARGS+=(--kernel-root "$KERNEL_ROOT")
-            fi
-            if [ -n "$KERNEL_MODULES_DIR" ]; then
-              BUILD_ARGS+=(--kernel-modules-dir "$KERNEL_MODULES_DIR")
-            fi
-            if [ -n "$KERNEL_FIRMWARE_DIR" ]; then
-              BUILD_ARGS+=(--kernel-firmware-dir "$KERNEL_FIRMWARE_DIR")
-            fi
           elif [ -n "$KERNEL_ROOT" ] || [ -n "$KERNEL_MODULES_DIR" ] || [ -n "$KERNEL_FIRMWARE_DIR" ]; then
             echo "granular kernel root/modules/firmware inputs require kernel_file" >&2
             exit 2

@@ -33,6 +33,16 @@ kernel artifact that we can build, patch, attest, flash, and verify.
 As of 2026-05-01:
 
 - `TIN-882` is in progress.
+- PR #1 merged the audit build, kernel-bundle handoff, Nix, Bazel/RBE,
+  source-trace, and runbook scaffolding to `master`:
+  `fcc2098cdde659f69c2654fc9b9a1e61d7c3145f`.
+- PR #2 merged the signed public community release workflow to `master`:
+  `ed569d56cdd4362bd427cb04f41113d2754be00c`.
+- The public community release workflow now defaults to GitHub-hosted
+  Ubuntu, installs Nix with a pinned installer action commit, builds
+  `.#publicCommunityRelease`, verifies release policy, keyless-signs the
+  attestable files, uploads the signed pack, and can optionally create a
+  draft GitHub Release.
 - `p7zip` is available in both the Nix dev shell and the operator's user
   Nix profile.
 - The real public community archives are staged locally at
@@ -50,11 +60,28 @@ As of 2026-05-01:
   `@was110_vendor_blobs//:basic_kernel`,
   `@was110_vendor_blobs//:basic_rootfs`, and
   `@was110_vendor_blobs//:pins_inputs`.
-- `TIN-883` has a local Nix release-pack proof via
-  `nix build .#publicCommunityRelease`.
+- `TIN-883` has a committed mainline Nix release-pack proof via
+  `nix build .#publicCommunityRelease` from clean `master`.
   The pack includes `manifest.json`, `provenance.intoto.json`,
   `SHA256SUMS`, `inputs.json`, `public-source-lock.json`, firmware
   artifacts, and `audit-summary.md`.
+- Clean mainline proof output captured after PR #1 merged:
+  `/nix/store/fx8b4wcxr2j7819j2dsd28anbnssf139-was110-public-community-release-community-bfw-v2.4.0+basic-v2.8.3`.
+- That proof records:
+  - git revision:
+    `fcc2098cdde659f69c2654fc9b9a1e61d7c3145f`
+  - `kernel.rebuilt_from_source`:
+    `false`
+  - `manifest.json` SHA-256:
+    `d272c1669e2a1d6586e9b919ca32c11c157b25a36ad3f1bdf849332a6915a3f1`
+  - `provenance.intoto.json` SHA-256:
+    `d1010740485b739dc1a8f6337099b017ca421bdd2423f563b64ce673bc2c8619`
+  - `kernel.bin` SHA-256:
+    `d66b24cf873cc1071a3aa2d155bf677f503f10d221513e469083f8a591f6b96c`
+  - `local-upgrade.img` SHA-256:
+    `23544d8537ec29f098c72d25f64c1b8cc7ced2db2a30aac63278b7eba6a4f286`
+  - `multicast_upgrade.img` SHA-256:
+    `cbcb4acbdd2bac3b691070884ddc6b541c3919b44a21b1f0da7d50609a0a64cc`
 - Representative path-flake output captured during validation:
   `/nix/store/f96qxrcb1qrkfxzhxa6kjyqjcfk95yl9-was110-public-community-release-community-bfw-v2.4.0+basic-v2.8.3`.
 - That path-flake build recorded source identity as `path-q8gnr4b5jkhc`
