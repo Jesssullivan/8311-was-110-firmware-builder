@@ -256,6 +256,14 @@ If `cve_baseline` is supplied to the workflow, it is copied into
 `out/cve-baseline.csv` before `audit/release-pack.sh` runs, so the baseline
 is included in `manifest.json` and `SHA256SUMS`.
 
+For the pinned public community baseline, use
+`.github/workflows/public-community-release.yml` after changes are merged to
+`master`. It builds `.#publicCommunityRelease` directly from committed pins,
+verifies the release pack, keyless-signs `manifest.json`, `SHA256SUMS`, and
+`provenance.intoto.json` with GitHub OIDC/cosign bundles, and uploads the
+signed release directory as a workflow artifact. Supplying `release_tag`
+also creates a draft GitHub Release containing the signed pack.
+
 For Bazel/RBE execution, use the `was110_firmware` rule and private vendor
 blob repository described in `docs/BAZEL-RBE.md`. Remote execution is
 appropriate only when the remote CAS/worker pool is inside the lab trust

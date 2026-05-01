@@ -1,0 +1,102 @@
+name: Public community release
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_labels:
+        description: 'JSON array of runner labels. Use a Nix-enabled Linux runner.'
+        required: true
+        default: '["self-hosted","Linux"]'
+      release_tag:
+        description: 'Optional tag name. When set, creates a draft GitHub Release with signed artifacts.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build, sign, and upload public community release
+    runs-on: ${{ fromJSON(inputs.runner_labels) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check Nix
+        run: nix --version
+
+      - name: Build pinned public release pack
+        run: nix build --out-link result-public-community .#publicCommunityRelease
+
+      - name: Copy release pack to writable workspace
+        run: |
+          rm -rf out
+          mkdir -p out
+          cp -R --no-preserve=mode,ownership result-public-community/. out/
+          chmod -R u+w out
+
+      - name: Verify release pack
+        run: |
+          nix develop .#linux-build -c ./audit/verify-release-pack.sh out
+          nix develop .#linux-build -c ./audit/verify-release-policy.sh out/manifest.json
+
+      - name: Sign release attestable files
+        env:
+          COSIGN_YES: "true"
+        run: |
+          nix develop .#linux-build -c cosign sign-blob --yes \
+            --bundle out/manifest.json.bundle \
+            out/manifest.json
+          nix develop .#linux-build -c cosign sign-blob --yes \
+            --bundle out/SHA256SUMS.bundle \
+            out/SHA256SUMS
+          nix develop .#linux-build -c cosign sign-blob --yes \
+            --bundle out/provenance.intoto.json.bundle \
+            out/provenance.intoto.json
+
+      - name: Pack signed release directory
+        run: |
+          tar \
+            --sort=name \
+            --mtime='UTC 1970-01-01' \
+            --owner=0 \
+            --group=0 \
+            --numeric-owner \
+            -czf "was110-public-community-release-${GITHUB_SHA}.tar.gz" \
+            -C out .
+          sha256sum "was110-public-community-release-${GITHUB_SHA}.tar.gz" \
+            > "was110-public-community-release-${GITHUB_SHA}.tar.gz.sha256"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: was110-public-community-release-${{ github.sha }}
+          path: |
+            out/**
+            was110-public-community-release-${{ github.sha }}.tar.gz
+            was110-public-community-release-${{ github.sha }}.tar.gz.sha256
+
+      - name: Create draft GitHub Release
+        if: ${{ inputs.release_tag != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            --draft \
+            --target "$GITHUB_SHA" \
+            --title "WAS-110 public community release $RELEASE_TAG" \
+            --notes "Signed WAS-110 public community release pack built from pinned inputs at $GITHUB_SHA." \
+            "was110-public-community-release-${GITHUB_SHA}.tar.gz" \
+            "was110-public-community-release-${GITHUB_SHA}.tar.gz.sha256" \
+            out/manifest.json \
+            out/manifest.json.bundle \
+            out/SHA256SUMS \
+            out/SHA256SUMS.bundle \
+            out/provenance.intoto.json \
+            out/provenance.intoto.json.bundle
