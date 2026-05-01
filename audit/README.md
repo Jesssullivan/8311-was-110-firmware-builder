@@ -17,6 +17,7 @@ review.
 | `verify-device.sh [--fwenv-profile profile] <host> [user] [manifest]` | post-flash, on demand | a captured snapshot of the running unit's kernel, UBI volume hashes, and fwenv overrides |
 | `collect-device-evidence.sh [options] <host> [user]` | post-flash | saves `verify-device.sh` output as `out/verify-<host>-<timestamp>.txt` |
 | `collect-running-bundle.sh [options] <host> [user]` | source archaeology / audit evidence | saves active firmware volumes, DTB/device-tree, modules, firmware, package inventory, and runtime metadata from a live unit |
+| `verify-running-bundle.sh [options] <bundle-dir\|bundle.tar.gz>` | after running-bundle collection | verifies bundle checksums, active A/B volume dumps, optional release-manifest match, and sensitive dump policy |
 | `verify-kernel-bundle.sh <dir>` | before external kernel build | validates the `kernel.bin` + `lib/modules` artifact contract |
 | `pack-kernel-bundle.sh <dir> <out.tar>` | before Bazel/RBE build | validates and packages a deterministic `kernel_bundle_tar` |
 
