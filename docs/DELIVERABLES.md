@@ -38,11 +38,18 @@ As of 2026-05-01:
   `fcc2098cdde659f69c2654fc9b9a1e61d7c3145f`.
 - PR #2 merged the signed public community release workflow to `master`:
   `ed569d56cdd4362bd427cb04f41113d2754be00c`.
+- PR #3 made the public community release workflow runnable on
+  GitHub-hosted Ubuntu while retaining the lab-runner override:
+  `0fb51b21b41a69e98c553df39e77a091a564dde2`.
+- PR #4 pinned the official GitHub workflow actions by commit SHA:
+  `e59802470464423b314e1310d3298bb0e2431473`.
 - The public community release workflow now defaults to GitHub-hosted
-  Ubuntu, installs Nix with a pinned installer action commit, builds
+  Ubuntu, installs Nix with pinned `cachix/install-nix-action` commit
+  `ab739621df7a23f52766f9ccc97f38da6b7af14f`, uses pinned
+  `actions/checkout` and `actions/upload-artifact` commits, builds
   `.#publicCommunityRelease`, verifies release policy, keyless-signs the
-  attestable files, uploads the signed pack, and can optionally create a
-  draft GitHub Release.
+  attestable files, uploads the signed pack, and can create a draft
+  GitHub Release.
 - `p7zip` is available in both the Nix dev shell and the operator's user
   Nix profile.
 - The real public community archives are staged locally at
@@ -60,29 +67,38 @@ As of 2026-05-01:
   `@was110_vendor_blobs//:basic_kernel`,
   `@was110_vendor_blobs//:basic_rootfs`, and
   `@was110_vendor_blobs//:pins_inputs`.
-- `TIN-883` has a committed mainline Nix release-pack proof via
+- `TIN-883` is done. It has a committed mainline Nix release-pack proof
+  and a signed GitHub Actions release proof via
   `nix build .#publicCommunityRelease` from clean `master`.
   The pack includes `manifest.json`, `provenance.intoto.json`,
   `SHA256SUMS`, `inputs.json`, `public-source-lock.json`, firmware
   artifacts, and `audit-summary.md`.
-- Clean mainline proof output captured after PR #1 merged:
-  `/nix/store/fx8b4wcxr2j7819j2dsd28anbnssf139-was110-public-community-release-community-bfw-v2.4.0+basic-v2.8.3`.
-- That proof records:
+- Final signed public community release proof:
+  - workflow run:
+    <https://github.com/Jesssullivan/8311-was-110-firmware-builder/actions/runs/25235727828>
+  - draft GitHub Release:
+    <https://github.com/Jesssullivan/8311-was-110-firmware-builder/releases/tag/untagged-a35993d18ef94a4801fc>
   - git revision:
-    `fcc2098cdde659f69c2654fc9b9a1e61d7c3145f`
+    `e59802470464423b314e1310d3298bb0e2431473`
   - `kernel.rebuilt_from_source`:
     `false`
+  - release tarball SHA-256:
+    `70b2cc62660effbba36cf4b8445f93baae131ff0b572f75529b1074c408ee65f`
   - `manifest.json` SHA-256:
-    `d272c1669e2a1d6586e9b919ca32c11c157b25a36ad3f1bdf849332a6915a3f1`
+    `82ec8a2e9bcf26d274748b50448bd5d6f326d8a62c74a67b6f6912135187607f`
   - `provenance.intoto.json` SHA-256:
-    `d1010740485b739dc1a8f6337099b017ca421bdd2423f563b64ce673bc2c8619`
+    `a18cf947ffe35b5abbf6c0e09c5811cea36c9252754b7c018d0ca081fa33d143`
   - `kernel.bin` SHA-256:
     `d66b24cf873cc1071a3aa2d155bf677f503f10d221513e469083f8a591f6b96c`
   - `local-upgrade.img` SHA-256:
-    `23544d8537ec29f098c72d25f64c1b8cc7ced2db2a30aac63278b7eba6a4f286`
+    `5994678126ef89583a31e05240ebaa0e84f89d518ee6ee9403ce253ebdb476f7`
   - `multicast_upgrade.img` SHA-256:
-    `cbcb4acbdd2bac3b691070884ddc6b541c3919b44a21b1f0da7d50609a0a64cc`
-- Representative path-flake output captured during validation:
+    `7b65b2f98fb92c2ff675333be5676ceac7ecc4574e2362e40c8d704afc320a41`
+  - verification:
+    `audit/verify-release-pack.sh`, `audit/verify-release-policy.sh`, and
+    `cosign verify-blob` for `manifest.json`, `SHA256SUMS`, and
+    `provenance.intoto.json` all passed after downloading the artifact.
+- Earlier path-flake output captured during pre-merge validation:
   `/nix/store/f96qxrcb1qrkfxzhxa6kjyqjcfk95yl9-was110-public-community-release-community-bfw-v2.4.0+basic-v2.8.3`.
 - That path-flake build recorded source identity as `path-q8gnr4b5jkhc`
   with `dirty=true`. Dirty path-flake store paths and image hashes are
