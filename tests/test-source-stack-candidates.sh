@@ -86,6 +86,20 @@ jq -e '
   and .git_sources[0].tree
   and .git_sources[0].archive.sha256
 ' "$OUT/source-stack.manifest.json" >/dev/null
+"$BASE_DIR/pins/verify-source-stack-materialization.sh" \
+  --dir "$OUT" \
+  --require fixture-branch >/dev/null
+if "$BASE_DIR/pins/verify-source-stack-materialization.sh" \
+  --dir "$OUT" \
+  --require fixture-tag >/dev/null 2>&1; then
+  echo "missing required source unexpectedly passed materialization verification" >&2
+  exit 1
+fi
+printf 'dirty\n' >> "$OUT/git/fixture-branch/dts/prx126-sfp-pon.dts"
+if "$BASE_DIR/pins/verify-source-stack-materialization.sh" --dir "$OUT" >/dev/null 2>&1; then
+  echo "dirty materialized source unexpectedly passed" >&2
+  exit 1
+fi
 
 jq '.materialization.git_sources[0].commit = "0000000000000000000000000000000000000000"' \
   "$LOCK" > "$TMP/bad-lock.json"
