@@ -1,6 +1,6 @@
 # WAS-110 kernel upgradability deliverables
 
-Last reviewed: 2026-05-01.
+Last reviewed: 2026-05-06.
 
 Linear project:
 <https://linear.app/tinyland/project/was-110-kernel-upgradability-and-audit-build-e5c3c9b147a4>
@@ -30,7 +30,7 @@ kernel artifact that we can build, patch, attest, flash, and verify.
 
 ## Current Status
 
-As of 2026-05-01:
+As of 2026-05-06:
 
 - `TIN-882` is in progress.
 - PR #1 merged the audit build, kernel-bundle handoff, Nix, Bazel/RBE,
@@ -72,6 +72,11 @@ As of 2026-05-01:
   `@was110_vendor_blobs//:basic_kernel`,
   `@was110_vendor_blobs//:basic_rootfs`, and
   `@was110_vendor_blobs//:pins_inputs`.
+- GloriousFlywheel consumer wrappers now accept the generated repository via
+  `GF_BAZEL_INJECT_REPOSITORIES=was110_vendor_blobs=/secure/was110-vendor-blobs`
+  alongside `BAZEL_DISTDIR` and `BAZEL_REPOSITORY_CACHE`, so the WAS-110
+  handoff can use the shared cache-forward Bazel contract instead of
+  ad hoc consumer flags.
 - `TIN-883` is done. It has a committed mainline Nix release-pack proof
   and a signed GitHub Actions release proof via
   `nix build .#publicCommunityRelease` from clean `master`.
