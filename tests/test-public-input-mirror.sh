@@ -114,7 +114,24 @@ test "$(jq -r '.inputs.bfw_image.vendor_version' "$PINS")" = "fixture-public-mir
 test "$(jq -r '.inputs.bfw_image.source_url' "$PINS")" = "public-source-lock:$(basename "$LOCK")"
 
 "$BASE_DIR/pins/verify-vendor-repo.sh" "$VENDOR_REPO" >/dev/null
+VENDOR_REPO_ABS=$(cd "$VENDOR_REPO" && pwd -P)
 grep -q 'pins_inputs' "$VENDOR_REPO/BUILD.bazel"
+grep -q 'GF_BAZEL_INJECT_REPOSITORIES' "$VENDOR_REPO/was110_vendor_blobs.env"
+grep -q -- "--inject_repository=was110_vendor_blobs=$VENDOR_REPO_ABS" "$VENDOR_REPO/was110_vendor_blobs.bazelrc"
+jq -e '
+  .kind == "8311-was-110-bazel-input-handoff"
+  and .repository_name == "was110_vendor_blobs"
+  and .repository_path == "'"$VENDOR_REPO_ABS"'"
+  and .trust_boundary.remote_execution_proven == false
+  and (.bazel_labels | index("@was110_vendor_blobs//:pins_inputs"))
+' "$VENDOR_REPO/was110_vendor_blobs.handoff.json" >/dev/null
+(
+  unset GF_BAZEL_INJECT_REPOSITORIES GF_BAZEL_SUBSTRATE_MODE
+  # shellcheck disable=SC1091
+  . "$VENDOR_REPO/was110_vendor_blobs.env"
+  test "$GF_BAZEL_INJECT_REPOSITORIES" = "was110_vendor_blobs=$VENDOR_REPO_ABS"
+  test "$GF_BAZEL_SUBSTRATE_MODE" = "shared-cache-backed"
+)
 
 if "$BASE_DIR/pins/fetch-public-inputs.sh" \
   --lock "$LOCK" \

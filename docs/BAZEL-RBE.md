@@ -163,10 +163,16 @@ The same repository can be generated from reviewed files:
   /secure/was110-vendor-blobs
 ```
 
-Then inject it with `--inject_repository=was110_vendor_blobs=/secure/was110-vendor-blobs`
-or wire it into your monorepo's normal private-repository mechanism.
+The generated repository includes handoff files so consumers do not need to
+carry one-off inject flags:
+
+- `was110_vendor_blobs.env` for GloriousFlywheel's cache-backed wrapper
+- `was110_vendor_blobs.bazelrc` for direct Bazel consumers that import
+  private repository wiring
+- `was110_vendor_blobs.handoff.json` recording labels and CAS policy
+
 Run `./pins/verify-vendor-repo.sh /secure/was110-vendor-blobs` before
-mirroring or injecting the generated repo.
+mirroring or wiring the generated repo into a consuming workspace.
 
 When the consumer is running through GloriousFlywheel's cache-forward Bazel
 wrapper, keep the same reviewed repo shape and pass it through the wrapper
@@ -175,16 +181,22 @@ contract instead of adding one-off Bazel flags:
 ```sh
 export BAZEL_DISTDIR=/mirror/was110/public-archives
 export BAZEL_REPOSITORY_CACHE=/var/cache/bazel/repository
-export GF_BAZEL_INJECT_REPOSITORIES=was110_vendor_blobs=/secure/was110-vendor-blobs
-export GF_BAZEL_SUBSTRATE_MODE=shared-cache-backed
+. /secure/was110-vendor-blobs/was110_vendor_blobs.env
 scripts/bazel-cache-backed.sh build //firmware/was110:was110_lab_release
 ```
 
 `BAZEL_DISTDIR` and `BAZEL_REPOSITORY_CACHE` are cache-forward inputs for
-ordinary external fetches. `GF_BAZEL_INJECT_REPOSITORIES` is the authority
-handoff for this generated, reviewed blob repository. The blobs still become
-declared action inputs if remote execution is enabled, so the CAS approval
-rule above still applies.
+ordinary external fetches. The generated env file sets
+`GF_BAZEL_INJECT_REPOSITORIES` as the authority handoff for this reviewed
+blob repository. The blobs still become declared action inputs if remote
+execution is enabled, so the CAS approval rule above still applies.
+
+For a direct Bazel consumer, import the generated rc fragment from the
+consuming workspace after reviewing the handoff manifest:
+
+```text
+try-import /secure/was110-vendor-blobs/was110_vendor_blobs.bazelrc
+```
 
 ## Private vendor blob package
 

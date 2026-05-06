@@ -175,9 +175,10 @@ The clean model is:
 
 1. mirror public archives into an internal artifact store by SHA-256,
 2. generate or import a Bazel repository exposing those files as labels,
-3. pass those labels to `was110_firmware`,
-4. let RBE upload them to the private or approved CAS, and
-5. sign the resulting manifest and provenance.
+3. wire that repo into the consumer with the generated handoff files,
+4. pass those labels to `was110_firmware`,
+5. let RBE upload them to the private or approved CAS, and
+6. sign the resulting manifest and provenance.
 
 For private vendor drops or lab-extracted bundles, use the same label
 shape but keep execution inside the lab trust boundary, or mark the target

@@ -14,7 +14,16 @@ if [ -z "$REPO_DIR" ] || [ ! -d "$REPO_DIR" ]; then
   exit 2
 fi
 
-for f in BUILD.bazel REPO.bazel SHA256SUMS bfw.img pins.inputs.json vendor_blobs.meta.json; do
+for f in \
+  BUILD.bazel \
+  REPO.bazel \
+  SHA256SUMS \
+  bfw.img \
+  pins.inputs.json \
+  vendor_blobs.meta.json \
+  was110_vendor_blobs.bazelrc \
+  was110_vendor_blobs.env \
+  was110_vendor_blobs.handoff.json; do
   [ -f "$REPO_DIR/$f" ] || { echo "missing $REPO_DIR/$f" >&2; exit 2; }
 done
 for f in bootcore.bin kernel.bin rootfs.img; do
@@ -36,6 +45,15 @@ command -v sha256sum >/dev/null || { echo "sha256sum required" >&2; exit 2; }
   "$REPO_DIR/basic"
 
 jq -e '.kind == "8311-was-110-private-vendor-blob-repo"' "$REPO_DIR/vendor_blobs.meta.json" >/dev/null
+jq -e '
+  .kind == "8311-was-110-bazel-input-handoff"
+  and .repository_name == "was110_vendor_blobs"
+  and .trust_boundary.remote_execution_proven == false
+  and (.bazel_labels | index("@was110_vendor_blobs//:bfw.img"))
+' "$REPO_DIR/was110_vendor_blobs.handoff.json" >/dev/null
+grep -q 'GF_BAZEL_INJECT_REPOSITORIES' "$REPO_DIR/was110_vendor_blobs.env"
+grep -q 'GF_BAZEL_SUBSTRATE_MODE=shared-cache-backed' "$REPO_DIR/was110_vendor_blobs.env"
+grep -q -- '--inject_repository=was110_vendor_blobs=' "$REPO_DIR/was110_vendor_blobs.bazelrc"
 
 check_meta() {
   local path="$1" actual expected
