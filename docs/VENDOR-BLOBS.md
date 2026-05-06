@@ -77,6 +77,12 @@ internal artifact storage:
 This checks `SHA256SUMS`, re-runs strict pin verification, and verifies the
 metadata file.
 
+For GloriousFlywheel consumers, pass the verified repo through
+`GF_BAZEL_INJECT_REPOSITORIES=was110_vendor_blobs=/secure/was110-vendor-blobs`
+so the cache-forward wrapper owns the Bazel injection. Continue to use
+`BAZEL_DISTDIR` and `BAZEL_REPOSITORY_CACHE` for ordinary public archive
+fetches.
+
 ## External kernel handoff
 
 When a rebuildable kernel exists, package it first:

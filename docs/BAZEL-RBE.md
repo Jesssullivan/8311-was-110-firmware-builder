@@ -168,6 +168,24 @@ or wire it into your monorepo's normal private-repository mechanism.
 Run `./pins/verify-vendor-repo.sh /secure/was110-vendor-blobs` before
 mirroring or injecting the generated repo.
 
+When the consumer is running through GloriousFlywheel's cache-forward Bazel
+wrapper, keep the same reviewed repo shape and pass it through the wrapper
+contract instead of adding one-off Bazel flags:
+
+```sh
+export BAZEL_DISTDIR=/mirror/was110/public-archives
+export BAZEL_REPOSITORY_CACHE=/var/cache/bazel/repository
+export GF_BAZEL_INJECT_REPOSITORIES=was110_vendor_blobs=/secure/was110-vendor-blobs
+export GF_BAZEL_SUBSTRATE_MODE=shared-cache-backed
+scripts/bazel-cache-backed.sh build //firmware/was110:was110_lab_release
+```
+
+`BAZEL_DISTDIR` and `BAZEL_REPOSITORY_CACHE` are cache-forward inputs for
+ordinary external fetches. `GF_BAZEL_INJECT_REPOSITORIES` is the authority
+handoff for this generated, reviewed blob repository. The blobs still become
+declared action inputs if remote execution is enabled, so the CAS approval
+rule above still applies.
+
 ## Private vendor blob package
 
 Create a private, non-git directory or internal artifact mirror with a
