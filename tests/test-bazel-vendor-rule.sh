@@ -82,4 +82,37 @@ if (
 fi
 grep -q 'bfw_image sha256 mismatch' "$NEGATIVE_LOG"
 
+IMPORTED_REPO="$TMP/imported-repo"
+"$BASE_DIR/pins/import-vendor-blobs.sh" \
+  --pins "$PINS" \
+  "$BLOBS/bfw.img" \
+  "$BLOBS/basic" \
+  "$IMPORTED_REPO" >/dev/null
+"$BASE_DIR/pins/verify-vendor-repo.sh" "$IMPORTED_REPO" >/dev/null
+
+HANDOFF_WS="$TMP/handoff"
+mkdir -p "$HANDOFF_WS"
+cat > "$HANDOFF_WS/.bazelrc" <<EOF
+try-import $IMPORTED_REPO/was110_vendor_blobs.bazelrc
+EOF
+cat > "$HANDOFF_WS/MODULE.bazel" <<'EOF'
+module(name = "was110_vendor_rule_handoff")
+EOF
+cat > "$HANDOFF_WS/BUILD.bazel" <<'EOF'
+filegroup(
+    name = "use_blobs",
+    srcs = [
+        "@was110_vendor_blobs//:bfw.img",
+        "@was110_vendor_blobs//:basic_bootcore",
+        "@was110_vendor_blobs//:basic_kernel",
+        "@was110_vendor_blobs//:basic_rootfs",
+        "@was110_vendor_blobs//:pins_inputs",
+    ],
+)
+EOF
+(
+  cd "$HANDOFF_WS"
+  bazelisk build //:use_blobs --nobuild
+) >/dev/null
+
 echo "bazel vendor repository rule tests passed"

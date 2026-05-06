@@ -58,6 +58,9 @@ The script updates pins when requested, verifies strict hashes, and writes:
 |-- SHA256SUMS
 |-- bfw.img
 |-- pins.inputs.json
+|-- was110_vendor_blobs.bazelrc
+|-- was110_vendor_blobs.env
+|-- was110_vendor_blobs.handoff.json
 |-- vendor_blobs.meta.json
 `-- basic/
     |-- bootcore.bin
@@ -78,10 +81,18 @@ This checks `SHA256SUMS`, re-runs strict pin verification, and verifies the
 metadata file.
 
 For GloriousFlywheel consumers, pass the verified repo through
-`GF_BAZEL_INJECT_REPOSITORIES=was110_vendor_blobs=/secure/was110-vendor-blobs`
-so the cache-forward wrapper owns the Bazel injection. Continue to use
-`BAZEL_DISTDIR` and `BAZEL_REPOSITORY_CACHE` for ordinary public archive
-fetches.
+the generated `was110_vendor_blobs.env` file so the cache-forward wrapper
+owns the Bazel injection:
+
+```sh
+. /secure/was110-vendor-blobs/was110_vendor_blobs.env
+scripts/bazel-cache-backed.sh build //firmware/was110:was110_lab_release
+```
+
+Direct Bazel consumers can import `was110_vendor_blobs.bazelrc` from the
+consuming workspace after reviewing `was110_vendor_blobs.handoff.json`.
+Continue to use `BAZEL_DISTDIR` and `BAZEL_REPOSITORY_CACHE` for ordinary
+public archive fetches.
 
 ## External kernel handoff
 

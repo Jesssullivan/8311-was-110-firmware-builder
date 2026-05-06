@@ -118,7 +118,10 @@ For Bazel/RBE handoff, create a private vendor blob repository after review:
 ```
 
 The generated directory is intentionally ignored by git and exposes Bazel
-labels for the blobs plus `@was110_vendor_blobs//:pins_inputs`. See
+labels for the blobs plus `@was110_vendor_blobs//:pins_inputs`. It also
+writes `was110_vendor_blobs.env`, `was110_vendor_blobs.bazelrc`, and
+`was110_vendor_blobs.handoff.json` so the consuming workspace can use a
+reviewed handoff artifact instead of a one-off inject flag. See
 `docs/VENDOR-BLOBS.md`.
 
 Before using that private repository:
