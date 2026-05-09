@@ -65,6 +65,8 @@ grep -q 'python3' "$BASE_DIR/containers/was110-rbe/Dockerfile"
 grep -q 'WAS110_GIT_REV' "$BASE_DIR/bazel/workspace_status.sh"
 grep -q 'docs/\*\*' "$BASE_DIR/BUILD.bazel"
 grep -q 'flake.nix' "$BASE_DIR/BUILD.bazel"
+grep -q 'public_vendor_handoff_fixture' "$BASE_DIR/BUILD.bazel"
+grep -q 'requires-was110-public-vendor-repo' "$BASE_DIR/BUILD.bazel"
 grep -q 'analysis_fixture' "$BASE_DIR/tests/bazel/BUILD.bazel"
 grep -q 'bfw_image sha256 mismatch' "$BASE_DIR/tests/test-bazel-vendor-rule.sh"
 

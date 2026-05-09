@@ -288,6 +288,21 @@ path:
 nix shell nixpkgs#bazelisk -c ./tests/test-bazel-vendor-rule.sh
 ```
 
+To prove the public-community handoff through an external executor without
+building a full firmware release, materialize and verify the public vendor repo
+first, then build:
+
+```sh
+bazel build \
+  --inject_repository=was110_vendor_blobs=/absolute/was110-public-community-repo \
+  //:public_vendor_handoff_fixture
+```
+
+That fixture hashes the declared public-community blob labels as action inputs.
+It is intentionally tagged `manual` and requires an injected
+`was110_vendor_blobs` repository, so ordinary CI does not silently fetch or
+publish public inputs.
+
 ## Kernel bundle tar
 
 For Bazel, the external kernel bundle is passed as a tar so directory
