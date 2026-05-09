@@ -41,6 +41,26 @@ filegroup(
     ],
 )
 
+genrule(
+    name = "public_vendor_handoff_fixture",
+    srcs = [
+        "@was110_vendor_blobs//:basic_bootcore",
+        "@was110_vendor_blobs//:basic_kernel",
+        "@was110_vendor_blobs//:basic_rootfs",
+        "@was110_vendor_blobs//:bfw.img",
+        "@was110_vendor_blobs//:pins_inputs",
+    ],
+    outs = ["public_vendor_handoff_fixture.SHA256SUMS"],
+    cmd_bash = """
+set -euo pipefail
+sha256sum $(SRCS) > "$@"
+""",
+    tags = [
+        "manual",
+        "requires-was110-public-vendor-repo",
+    ],
+)
+
 # Example use from a lab-private workspace:
 #
 # was110_firmware(
