@@ -273,9 +273,11 @@ This repository includes an analysis-only Bazel fixture that uses tiny fake
 inputs and never runs the firmware build action:
 
 ```sh
-bazel query //:was110_builder_srcs
-bazel build --nobuild //tests/bazel:analysis_fixture
+bazel --batch query //:was110_builder_srcs
+bazel --batch build --nobuild //tests/bazel:analysis_fixture
 ```
+
+`--batch` runs each one-shot check without leaving a Bazel server behind.
 
 That verifies the Starlark rule shape and action graph without requiring
 vendor blobs. It also produces or updates `MODULE.bazel.lock`; review that

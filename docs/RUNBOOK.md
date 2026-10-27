@@ -296,8 +296,8 @@ boundary for vendor firmware. Validate rule analysis without real blobs
 with:
 
 ```sh
-bazel query //bazel/platforms:was110_rbe_linux
-bazel build --nobuild //tests/bazel:analysis_fixture
+bazel --batch query //bazel/platforms:was110_rbe_linux
+bazel --batch build --nobuild //tests/bazel:analysis_fixture
 ```
 
 ## 5. Rolling forward

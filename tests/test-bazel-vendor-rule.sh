@@ -8,7 +8,29 @@ fi
 
 BASE_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 TMP=$(mktemp -d)
-trap 'rm -rf "$TMP"' EXIT
+
+# Each temp workspace gets its own Bazel server. Stop every one before the
+# workspace is removed, so a run leaves no server idling for the 3 h default
+# (TIN-5770, R472). The short idle limit is the backstop if the trap never
+# runs (TIN-5770, R470). `shutdown` starts no server when none is running.
+BAZEL_STARTUP=(--max_idle_secs=10)
+WORKSPACES=()
+cleanup() {
+  local ws
+  for ws in ${WORKSPACES[@]+"${WORKSPACES[@]}"}; do
+    (cd "$ws" && bazelisk "${BAZEL_STARTUP[@]}" shutdown) >/dev/null 2>&1 || true
+  done
+  rm -rf "$TMP"
+}
+trap cleanup EXIT
+
+# bazel_in WORKSPACE ARGS...: run bazelisk in WORKSPACE and record it for cleanup.
+bazel_in() {
+  local ws="$1"
+  shift
+  WORKSPACES+=("$ws")
+  (cd "$ws" && bazelisk "${BAZEL_STARTUP[@]}" "$@")
+}
 
 make_workspace() {
   local name="$1" blobs="$2" pins="$3" workspace="$4"
@@ -61,10 +83,7 @@ cp "$BASE_DIR/pins/inputs.json" "$PINS"
 
 GOOD_WS="$TMP/good"
 make_workspace was110_vendor_rule_positive "$BLOBS" "$PINS" "$GOOD_WS"
-(
-  cd "$GOOD_WS"
-  bazelisk build //:use_blobs --nobuild
-) >/dev/null
+bazel_in "$GOOD_WS" build //:use_blobs --nobuild >/dev/null
 
 BAD_BLOBS="$TMP/bad-blobs"
 cp -a "$BLOBS" "$BAD_BLOBS"
@@ -72,10 +91,7 @@ printf 'tamper\n' >> "$BAD_BLOBS/bfw.img"
 BAD_WS="$TMP/bad"
 make_workspace was110_vendor_rule_negative "$BAD_BLOBS" "$PINS" "$BAD_WS"
 NEGATIVE_LOG="$TMP/negative.log"
-if (
-  cd "$BAD_WS"
-  bazelisk build //:use_blobs --nobuild
-) >"$NEGATIVE_LOG" 2>&1; then
+if bazel_in "$BAD_WS" build //:use_blobs --nobuild >"$NEGATIVE_LOG" 2>&1; then
   cat "$NEGATIVE_LOG" >&2
   echo "tampered repository rule unexpectedly passed" >&2
   exit 1
@@ -110,9 +126,6 @@ filegroup(
     ],
 )
 EOF
-(
-  cd "$HANDOFF_WS"
-  bazelisk build //:use_blobs --nobuild
-) >/dev/null
+bazel_in "$HANDOFF_WS" build //:use_blobs --nobuild >/dev/null
 
 echo "bazel vendor repository rule tests passed"

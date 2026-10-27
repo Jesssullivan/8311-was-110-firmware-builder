@@ -1,0 +1,3 @@
+# Bound the client server any Bazel command here starts (TIN-5770, R470).
+# The default idle time is 3 h. A flag on the command line still wins.
+startup --max_idle_secs=120
